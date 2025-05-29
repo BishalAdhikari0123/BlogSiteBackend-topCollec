@@ -118,15 +118,25 @@ const verifyEmail = catchAsync(async (req, res) => {
 
   await Otp.deleteOne({ email });
 
+  // ✅ Generate JWT token after verification
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
   return res.status(200).json({
     success: true,
     message: "Email verified successfully.",
+    token,
     user: {
+      id: user._id,
       email: user.email,
       username: user.username,
+      isEmailVerified: user.isEmailVerified,
     },
   });
 });
+
+
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
@@ -179,7 +189,7 @@ const login = catchAsync(async (req, res) => {
 });
 
 const becomeAWriter = catchAsync(async (req, res) => {
-  const userId = req.user?.userId; // assuming authentication middleware adds user info to req
+  const userId = req.userId;
 
   if (!userId) {
     return res.status(401).json({
