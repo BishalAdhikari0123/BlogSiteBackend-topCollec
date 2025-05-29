@@ -3,7 +3,7 @@ import validate from "../middlewares/validate.js";
 import userValidation from "../validations/auth.js";
 import authController from "../controllers/auth.js";
 import { uploadBlogProfileImage } from "../middlewares/multerConfig.js";
-// import getUserfromAuthToken from "../middlewares/getUserfromAuthToken.js";
+import getUserfromAuthToken from "../middlewares/jwtFromUser.js";
 
 const authRouter = Router();
 
