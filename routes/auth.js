@@ -26,5 +26,10 @@ authRouter.post(
   authController.login
 );
 
+authRouter.put(
+  "/become-a-writer",
+  getUserfromAuthToken,
+  authController.becomeAWriter
+);
 
 export default authRouter;

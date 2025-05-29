@@ -178,6 +178,55 @@ const login = catchAsync(async (req, res) => {
   });
 });
 
-const authController = { register, verifyEmail, login };
+const becomeAWriter = catchAsync(async (req, res) => {
+  const userId = req.user?.userId; // assuming authentication middleware adds user info to req
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized. Please login.",
+    });
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  if (!user.isEmailVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Email not verified. Please verify your email before applying.",
+    });
+  }
+
+  if (user.isWriter) {
+    return res.status(400).json({
+      success: false,
+      message: "You are already a writer.",
+    });
+  }
+
+  user.isWriter = true;
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "You are now a writer!",
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isWriter: user.isWriter,
+    },
+  });
+});
+
+
+const authController = { register, verifyEmail, login, becomeAWriter };
 
 export default authController;
