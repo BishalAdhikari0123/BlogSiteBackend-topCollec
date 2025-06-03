@@ -15,7 +15,7 @@ const startServer = async () => {
 
     // Enable CORS for frontend access (customize origin if needed)
     app.use(cors({
-      origin: 'http://localhost:3000', // or '*' for public access
+      origin: 'http://localhost:3000',
       credentials: true,
     }));
 
@@ -26,7 +26,7 @@ const startServer = async () => {
     app.use(express.json());
 
     // Optional: extract user from auth token
-    app.use(getUserFromAuthToken);
+    // app.use(getUserFromAuthToken);
 
     // API routes
     app.use('/api', routes);
