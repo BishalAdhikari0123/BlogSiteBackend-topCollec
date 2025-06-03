@@ -32,4 +32,23 @@ authRouter.put(
   authController.becomeAWriter
 );
 
+authRouter.post(
+  "/resend-otp",
+  validate({ body: userValidation.resendOtp }),
+  authController.resendOtp
+);
+
+authRouter.put(
+  "/change-password",
+  getUserfromAuthToken,
+  validate({ body: userValidation.changePassword }),
+  authController.changePassword
+);
+
+authRouter.post(
+  "/forgot-password",
+  validate({ body: userValidation.forgotPassword }),
+  authController.forgotPassword
+);
+
 export default authRouter;

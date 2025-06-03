@@ -68,7 +68,8 @@ const register = catchAsync(async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    message: "Account registered successfully. Please check your email to verify!",
+    message:
+      "Account registered successfully. Please check your email to verify!",
     user: {
       email: newUser.email,
       username: newUser.username,
@@ -135,7 +136,6 @@ const verifyEmail = catchAsync(async (req, res) => {
     },
   });
 });
-
 
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
@@ -214,14 +214,14 @@ const becomeAWriter = catchAsync(async (req, res) => {
     });
   }
 
-  if (user.isWriter) {
+  if (user.role === "writer") {
     return res.status(400).json({
       success: false,
       message: "You are already a writer.",
     });
   }
 
-  user.isWriter = true;
+  user.role = "writer";
   await user.save();
 
   return res.status(200).json({
@@ -236,7 +236,111 @@ const becomeAWriter = catchAsync(async (req, res) => {
   });
 });
 
+const resendOtp = catchAsync(async (req, res) => {
+  const { email } = req.body;
 
-const authController = { register, verifyEmail, login, becomeAWriter };
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is required.",
+    });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  if (user.isEmailVerified) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is already verified.",
+    });
+  }
+
+  await upsertOtp(email);
+
+  return res.status(200).json({
+    success: true,
+    message: "OTP resent. Please check your email.",
+  });
+});
+
+const changePassword = catchAsync(async (req, res) => {
+  const userId = req.userId;
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    return res.status(401).json({
+      success: false,
+      message: "Current password is incorrect.",
+    });
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Password changed successfully.",
+  });
+});
+
+const forgotPassword = catchAsync(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is required.",
+    });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found with that email.",
+    });
+  }
+
+  if (!user.isEmailVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Email not verified. Please verify your email first.",
+    });
+  }
+
+  await upsertOtp(email);
+
+  return res.status(200).json({
+    success: true,
+    message: "OTP sent to your email. Please use it to reset your password.",
+  });
+});
+
+const authController = {
+  register,
+  verifyEmail,
+  login,
+  becomeAWriter,
+  resendOtp,
+  changePassword,
+  forgotPassword,
+};
 
 export default authController;
