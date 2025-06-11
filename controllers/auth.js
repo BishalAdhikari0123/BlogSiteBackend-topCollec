@@ -214,14 +214,14 @@ const becomeAWriter = catchAsync(async (req, res) => {
     });
   }
 
-  if (user.role === "writer") {
+  if (user.role === "admin") {
     return res.status(400).json({
       success: false,
       message: "You are already a writer.",
     });
   }
 
-  user.role = "writer";
+  user.role = "admin";
   await user.save();
 
   return res.status(200).json({
