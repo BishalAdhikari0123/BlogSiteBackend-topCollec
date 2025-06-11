@@ -44,10 +44,12 @@ const userValidation = {
       }),
   }),
   login: Joi.object({
-    username: Joi.string()
+    email: Joi.string()
+      .email()
       .required()
       .messages({
-        "string.empty": "Username is required",
+        "string.empty": "Email is required",
+        "string.email": "Email must be valid",
       }),
     password: Joi.string()
       .required()
