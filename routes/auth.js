@@ -47,8 +47,13 @@ authRouter.put(
 
 authRouter.post(
   "/forgot-password",
-  validate({ body: userValidation.forgotPassword }),
   authController.forgotPassword
+);
+
+authRouter.post(
+  "/reset-password",
+  validate({ body: userValidation.resetPassword }),
+  authController.resetPassword
 );
 
 export default authRouter;

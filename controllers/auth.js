@@ -333,6 +333,59 @@ const forgotPassword = catchAsync(async (req, res) => {
   });
 });
 
+const resetPassword = catchAsync(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Email, OTP, and new password are required.",
+    });
+  }
+
+  const otpRecord = await Otp.findOne({ email });
+  if (!otpRecord) {
+    return res.status(400).json({
+      success: false,
+      message: "OTP not found or expired. Please request a new one.",
+    });
+  }
+
+  if (otpRecord.expirationTime < new Date()) {
+    await Otp.deleteOne({ email });
+    return res.status(400).json({
+      success: false,
+      message: "OTP expired. Please request a new one.",
+    });
+  }
+
+  const isOtpValid = await bcrypt.compare(otp, otpRecord.otp);
+  if (!isOtpValid) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid OTP. Please try again.",
+    });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  await Otp.deleteOne({ email });
+
+  return res.status(200).json({
+    success: true,
+    message: "Password reset successfully.",
+  });
+});
+
 const authController = {
   register,
   verifyEmail,
@@ -341,6 +394,7 @@ const authController = {
   resendOtp,
   changePassword,
   forgotPassword,
+  resetPassword,
 };
 
 export default authController;
