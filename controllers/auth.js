@@ -272,7 +272,14 @@ const resendOtp = catchAsync(async (req, res) => {
 
 const changePassword = catchAsync(async (req, res) => {
   const userId = req.userId;
-  const { currentPassword, newPassword } = req.body;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Current password and new password are required.",
+    });
+  }
 
   const user = await User.findById(userId);
   if (!user) {
@@ -282,7 +289,14 @@ const changePassword = catchAsync(async (req, res) => {
     });
   }
 
-  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!user.password) {
+    return res.status(500).json({
+      success: false,
+      message: "User password is missing in the database.",
+    });
+  }
+
+  const isMatch = await bcrypt.compare(oldPassword, user.password);
   if (!isMatch) {
     return res.status(401).json({
       success: false,
