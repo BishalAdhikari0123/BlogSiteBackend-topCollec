@@ -50,7 +50,7 @@ authRouter.post(
   authController.forgotPassword
 );
 
-authRouter.post(
+authRouter.put(
   "/reset-password",
   validate({ body: userValidation.resetPassword }),
   authController.resetPassword
